@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    environment {
+        // Define environment variables here
+        ARTIFACTORY_URL = 'http://ci.intranet.v-key.com/artifactory/generic-release-local/server/RELEASE/4.10.2-SRV-000/embedded/registry.jar'
+        DOCKER_REGISTRY = 'docker.io/naveen429/naveen'
+        DOCKER_IMAGE = 'vk-registry'
+        KUBE_DEPLOYMENT = 'registry_deployment'
+        VERSION = '4.10.2-SRV-000'
+    }
+
+    stage('Download the JAR file') {
+    steps {
+        script {
+            def jarUrl = "${ARTIFACTORY_URL}"
+            echo "Downloading JAR from: ${jarUrl}"
+            
+            // Download the JAR file using wget
+            sh "wget ${jarUrl}"
+        }
+    }
+}
+        stage('Build the Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image
+                    echo "Building Docker image..."
+                    sh 'docker build -t ${DOCKER_IMAGE}:${VERSION} .'
+                }
+            }
+        }
+
+        stage('Push to Docker Registry') {
+            steps {
+                script {
+                    // Login to Docker registry
+                    echo "Logging in to Docker registry..."
+                    sh 'echo $DOCKER_PASSWORD | docker login ${DOCKER_REGISTRY} -u ${DOCKER_USERNAME} --password-stdin'
+                    
+                    // Push the Docker image
+                    sh "docker push ${DOCKER_IMAGE}:${VERSION}"
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    // Apply the Kubernetes deployment
+                    echo "Deploying to Kubernetes..."
+                    sh "kubectl set image deployment/${KUBE_DEPLOYMENT} ${KUBE_DEPLOYMENT}=${DOCKER_IMAGE}:${VERSION}"
+                    sh "kubectl rollout status deployment/${KUBE_DEPLOYMENT}"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully haha you won !'
+        }
+        failure {
+            echo 'Pipeline failed you lost try again.'
+        }
+    }
+}
