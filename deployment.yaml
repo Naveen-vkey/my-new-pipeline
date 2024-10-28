@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: vk-registry
-        image: vk-registry:4.10
+        image: vk-registry:jenkins
         env:
           - name: DD_AGENT_HOST
             valueFrom:
