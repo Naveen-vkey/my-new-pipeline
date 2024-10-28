@@ -1,54 +1,48 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'naveen429/vk-registry:jenkins'
-    }
-
     stages {
-        stage('Clone Repository') {
+        stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/Naveen-vkey/my-new-pipeline.git'
+                // Clone the repository
+                git url: 'https://github.com/Naveen-vkey/my-new-pipeline.git', branch: 'main' // or the specific branch you need
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    // Build the Docker image
-                    sh "docker build -t ${DOCKER_IMAGE} ."
-                }
+                // Build the Docker image using the Dockerfile in the repo
+                sh 'docker build -t <registry-url>/myapp:latest .'
             }
         }
 
         stage('Push to Docker Registry') {
             steps {
                 script {
-                    // Login to Docker Registry
-                    withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh "echo \"\$DOCKER_PASSWORD\" | docker login -u \"\$DOCKER_USERNAME\" --password-stdin"
+                    // Login to the Docker registry
+                    withCredentials([usernamePassword(credentialsId: 'docker-registry-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD <registry-url>'
                     }
-                    sh "docker push ${DOCKER_IMAGE}"
+                    // Push the Docker image
+                    sh 'docker push <registry-url>/myapp:latest'
                 }
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    // Command to deploy the Docker image to Kubernetes
-                    sh "kubectl apply -f deployment.yaml"
-                }
+                // Update the Kubernetes deployment
+                sh 'kubectl set image deployment/myapp-deployment myapp=<registry-url>/myapp:latest'
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Deployment successful!'
         }
         failure {
-            echo 'Pipeline failed.'
+            echo 'Deployment failed!'
         }
     }
 }
