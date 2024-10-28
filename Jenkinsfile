@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // Clone the repository
-                git url: 'https://github.com/Naveen-vkey/my-new-pipeline.git', branch: 'main' // or the specific branch you need
+                git url: 'https://github.com/Naveen-vkey/my-new-pipeline.git', branch: 'master' // or the specific branch you need
             }
         }
 
