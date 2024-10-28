@@ -1,0 +1,49 @@
+# Start vk-registry
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vk-registry
+  namespace: k8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vk-registry
+  template:
+    metadata:
+      labels:
+        app: vk-registry
+    spec:
+      containers:
+      - name: vk-registry
+        image: vk-registry:4.10
+        env:
+          - name: DD_AGENT_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+        resources:
+          requests:
+            cpu: 150m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+        ports:
+        - containerPort: 8762
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vk-registry
+  namespace: k8s
+  # annotations:
+    # service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  # type: LoadBalancer
+  # loadBalancerIP: 10.0.2.35
+  ports:
+  - port: 8762
+  selector:
+    app: vk-registry
+# End vk-registry
