@@ -11,20 +11,20 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                // Build the Docker image using the Dockerfile in the repo
-                sh 'docker build -t <registry-url>/myapp:latest .'
+                // Build the Docker image using the specified repository name
+                sh 'docker build -t naveen429/naveen:tagname .'
             }
         }
 
         stage('Push to Docker Registry') {
             steps {
                 script {
-                    // Login to the Docker registry
                     withCredentials([usernamePassword(credentialsId: 'docker-registry-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD <registry-url>'
+                        // Log in to the Docker registry
+                        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
                     }
-                    // Push the Docker image
-                    sh 'docker push <registry-url>/myapp:latest'
+                    // Push the Docker image to the registry
+                    sh 'docker push naveen429/naveen:tagname'
                 }
             }
         }
