@@ -1,6 +1,4 @@
 FROM azul/zulu-openjdk:17
-RUN mkdir -p /root/logs /root/additional-files/vk-registry
-COPY run.sh application.properties jarfiles/registry.jar /root/
-RUN chmod 755 /root/run.sh && chmod -R 755 /root/logs
-WORKDIR /root
-ENTRYPOINT ["/root/run.sh", "start", "vk-registry"]
+EXPOSE 8762
+ADD jarfiles/registry.jar /registry.jar
+ENTRYPOINT ["java", "-jar", "/registry.jar"]
